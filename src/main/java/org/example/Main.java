@@ -34,6 +34,7 @@ public class Main {
             throws IOException {
 //        Clone("https://github.com/gemini-akashGarg/testProject", "beta");
         Clone("https://github.com/gemini-akashGarg/Gemjar_Eco_Regression", "master");
+//        Clone("https://github.com/gem-pawandeep/GemEcoSystem-API-JV","master");
         runbashCommand();
         uploadToS3("akashgarg", "40e82a05-7109-4341-870c-07046531e1441669020150562");
         FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/myapp"));
