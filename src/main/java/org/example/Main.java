@@ -25,17 +25,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-
 public class Main {
 
-    static String projectName="";
+    static String projectName = "";
 
     public static void main(String[] args)
             throws IOException {
 //        Clone("https://github.com/gemini-akashGarg/testProject", "beta");
-        Clone("https://github.com/gemini-akashGarg/Gemjar_Eco_Regression", "master", "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");
+        Clone("https://github.com/gemini-akashGarg/Gemjar_Eco_Regression", "master", "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");
         runbashCommand();
-//        uploadToS3("akashgarg", "40e82a05-7109-4341-870c-07046531e1441669020150562");
+        uploadToS3("akashgarg", "40e82a05-7109-4341-870c-07046531e1441669020150562");
     }
 
     public static void Clone(String gitLink, String branch) {
@@ -92,7 +91,12 @@ public class Main {
 
     public static void runbashCommand() throws IOException {
         // Set the command to be run
-        String[] command = {"bash", "-c", "cd myapp && pwd"};
+        String[] command = null;
+        if (System.getProperty("os.name").contains("Linux")) {
+            command = new String[]{"bash", "-c", "cd myapp"};
+        } else if (System.getProperty("os.name").contains("Windows")) {
+            command = new String[]{"cmd.exe", "/C", "cd myapp"};
+        }
         int exitCode = -1;
         // Create a ProcessBuilder for the command
         ProcessBuilder processBuilder = new ProcessBuilder(command);
@@ -118,7 +122,11 @@ public class Main {
         System.out.println("cd done");
         /////////////////////////////
 
-        command = new String[]{"bash", "-c", "mvn clean -f myapp/pom.xml"};
+        if (System.getProperty("os.name").contains("Linux")) {
+            command = new String[]{"bash", "-c", "mvn clean -f myapp/pom.xml"};
+        } else if (System.getProperty("os.name").contains("Windows")) {
+            command = new String[]{"cmd.exe", "/C", "mvn clean -f myapp/pom.xml"};
+        }
 
 
         // Create a ProcessBuilder for the command
@@ -145,15 +153,18 @@ public class Main {
         }
         System.out.println("mvn clean done");
         /////////////////////////////////
-
-        command = new String[]{"bash", "-c", "mvn -T 4 install -f myapp/pom.xml"};
+        if (System.getProperty("os.name").contains("Linux")) {
+            command = new String[]{"bash", "-c", "mvn -T 10 install -f myapp/pom.xml"};
+        } else if (System.getProperty("os.name").contains("Windows")) {
+            command = new String[]{"cmd.exe", "/C", "mvn -T 10 install -f myapp/pom.xml"};
+        }
         // Create a ProcessBuilder for the command
         processBuilder = new ProcessBuilder(command);
         try {
             // Start the process
             process = processBuilder.start();
             // Wait for the process to finish
-            process.waitFor();
+
             // Get the exit code of the process
             try (InputStreamReader isr = new InputStreamReader(process.getInputStream())) {
                 int c;
@@ -162,11 +173,11 @@ public class Main {
                     System.out.flush();
                 }
             }
+            process.waitFor();
             exitCode = process.exitValue();
             // Print the exit code
             System.out.println("Exit code: " + exitCode);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("some error occur while running mvn package");
         }
@@ -175,7 +186,7 @@ public class Main {
 
     public static void uploadToS3(String username, String token) throws IOException {
         try {
-            String filePath = System.getProperty("user.dir") + "/myapp/target/"+projectName+"-1.0-SNAPSHOT-jar-with-dependencies.jar";
+            String filePath = System.getProperty("user.dir") + "/myapp/target/" + projectName + "-1.0-SNAPSHOT-jar-with-dependencies.jar";
             System.out.println(filePath);
 
             String u = "https://apis-beta.gemecosystem.com/v1/upload/file";
