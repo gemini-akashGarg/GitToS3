@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.io.FileUtils;
 
 
 public class Main {
@@ -32,9 +33,10 @@ public class Main {
     public static void main(String[] args)
             throws IOException {
 //        Clone("https://github.com/gemini-akashGarg/testProject", "beta");
-        Clone("https://github.com/gemini-akashGarg/Gemjar_Eco_Regression", "master", "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");
+        Clone("https://github.com/gemini-akashGarg/Gemjar_Eco_Regression", "master");
         runbashCommand();
         uploadToS3("akashgarg", "40e82a05-7109-4341-870c-07046531e1441669020150562");
+        FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/myapp"));
     }
 
     public static void Clone(String gitLink, String branch) {
