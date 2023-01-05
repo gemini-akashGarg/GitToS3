@@ -38,14 +38,14 @@ public class Main {
 
     public static void main(String[] args)
             throws IOException {
-        Clone("https://github.com/gemini-akashGarg/testProject", null);
-//        Clone("https://github.com/gemini-akashGarg/Gemjar_Eco_Regression", "master");
+//        Clone("https://github.com/gemini-akashGarg/testProject", null);
+        Clone("https://github.com/gemini-akashGarg/Gemjar_Eco_Regression", "master");
 //        Clone("https://github.com/gem-pawandeep/GemEcoSystem-API-JV","master");
 //        Clone("https://github.com/Gemini-Solutions/Gemecosystem_Backend", "main","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");
-
+//        System.out.println(System.getProperty("java.io.tmpdir"));
         runbashCommand();
         uploadToS3("akashgarg", "40e82a05-7109-4341-870c-07046531e1441669020150562");
-        FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/" + folderName));
+//        FileUtils.deleteDirectory(new File(System.getProperty("java.io.tmpdir") + "/" + folderName));
     }
 
     public static void Clone(String gitLink, String branch) {
@@ -55,7 +55,7 @@ public class Main {
     public static void Clone(String gitLink, String branch, String pwd) {
         //         Local directory on this machine where we will clone remote repo.
         folderName = "myapp_" + UUID.randomUUID() + "_" + Instant.now().getEpochSecond();
-        File localRepoDir = new File(System.getProperty("user.dir") + "/" + folderName);
+        File localRepoDir = new File(System.getProperty("java.io.tmpdir") + "/" + folderName);
 
         // Monitor to get git command progress printed on java System.out console
         TextProgressMonitor consoleProgressMonitor = new TextProgressMonitor(new PrintWriter(System.out));
@@ -119,9 +119,9 @@ public class Main {
         // Set the command to be run
         String[] command = null;
         if (System.getProperty("os.name").contains("Linux")) {
-            command = new String[]{"bash", "-c", "cd " + folderName};
+            command = new String[]{"bash", "-c", "cd " + System.getProperty("java.io.tmpdir") + "/" + folderName};
         } else if (System.getProperty("os.name").contains("Windows")) {
-            command = new String[]{"cmd.exe", "/C", "cd " + folderName};
+            command = new String[]{"cmd.exe", "/C", "cd " + System.getProperty("java.io.tmpdir") + "/" + folderName};
         }
         int exitCode = -1;
         // Create a ProcessBuilder for the command
@@ -149,9 +149,9 @@ public class Main {
         /////////////////////////////
 
         if (System.getProperty("os.name").contains("Linux")) {
-            command = new String[]{"bash", "-c", "mvn clean -f " + folderName + "/pom.xml"};
+            command = new String[]{"bash", "-c", "mvn clean -f " + System.getProperty("java.io.tmpdir") + "/" + folderName + "/pom.xml"};
         } else if (System.getProperty("os.name").contains("Windows")) {
-            command = new String[]{"cmd.exe", "/C", "mvn clean -f " + folderName + "/pom.xml"};
+            command = new String[]{"cmd.exe", "/C", "mvn clean -f " + System.getProperty("java.io.tmpdir") + "/" + folderName + "/pom.xml"};
         }
 
 
@@ -180,9 +180,9 @@ public class Main {
         System.out.println("mvn clean done");
         /////////////////////////////////
         if (System.getProperty("os.name").contains("Linux")) {
-            command = new String[]{"bash", "-c", "mvn -T 10 install -f " + folderName + "/pom.xml"};
+            command = new String[]{"bash", "-c", "mvn -T 10 install -f " + System.getProperty("java.io.tmpdir") + "/" + folderName + "/pom.xml"};
         } else if (System.getProperty("os.name").contains("Windows")) {
-            command = new String[]{"cmd.exe", "/C", "mvn -T 10 install -f " + folderName + "/pom.xml"};
+            command = new String[]{"cmd.exe", "/C", "mvn -T 10 install -f " + System.getProperty("java.io.tmpdir") + "/" + folderName + "/pom.xml"};
         }
         // Create a ProcessBuilder for the command
         processBuilder = new ProcessBuilder(command);
@@ -212,7 +212,7 @@ public class Main {
 
     public static void uploadToS3(String username, String token) throws IOException {
         try {
-            String filePath = System.getProperty("user.dir") + "/" + folderName + "/target/" + projectName + "-1.0-SNAPSHOT-jar-with-dependencies.jar";
+            String filePath = System.getProperty("java.io.tmpdir") + "/" + folderName + "/target/" + projectName + "-1.0-SNAPSHOT-jar-with-dependencies.jar";
             System.out.println(filePath);
 
             String u = "https://apis-beta.gemecosystem.com/v1/upload/file";
