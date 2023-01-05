@@ -1,7 +1,11 @@
 package org.example;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -21,23 +25,27 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.time.Instant;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.io.FileUtils;
 
 
 public class Main {
 
     static String projectName = "";
+    static String folderName = "";
 
     public static void main(String[] args)
             throws IOException {
-//        Clone("https://github.com/gemini-akashGarg/testProject", "beta");
-        Clone("https://github.com/gemini-akashGarg/Gemjar_Eco_Regression", "master");
+        Clone("https://github.com/gemini-akashGarg/testProject", null);
+//        Clone("https://github.com/gemini-akashGarg/Gemjar_Eco_Regression", "master");
 //        Clone("https://github.com/gem-pawandeep/GemEcoSystem-API-JV","master");
+//        Clone("https://github.com/Gemini-Solutions/Gemecosystem_Backend", "main","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");
+
         runbashCommand();
         uploadToS3("akashgarg", "40e82a05-7109-4341-870c-07046531e1441669020150562");
-        FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/myapp"));
+        FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/" + folderName));
     }
 
     public static void Clone(String gitLink, String branch) {
@@ -46,10 +54,8 @@ public class Main {
 
     public static void Clone(String gitLink, String branch, String pwd) {
         //         Local directory on this machine where we will clone remote repo.
-        if (branch == null) {
-            branch = "master";
-        }
-        File localRepoDir = new File(System.getProperty("user.dir") + "/myapp");
+        folderName = "myapp_" + UUID.randomUUID() + "_" + Instant.now().getEpochSecond();
+        File localRepoDir = new File(System.getProperty("user.dir") + "/" + folderName);
 
         // Monitor to get git command progress printed on java System.out console
         TextProgressMonitor consoleProgressMonitor = new TextProgressMonitor(new PrintWriter(System.out));
@@ -69,6 +75,23 @@ public class Main {
         System.out.println("gitServer => " + GitServer);
         System.out.println("gitUserName => " + username);
         System.out.println("gitRepoName => " + repoName);
+
+        if (branch == null) {
+            branch = "";
+            if (pwd != null) {
+                RestAssured.baseURI = "https://api." + GitServer + "/repos/" + username + "/" + repoName;
+                Response response = RestAssured.given().header("Authorization", "Bearer " + pwd).get();
+                JsonElement jsonElement = JsonParser.parseString(response.getBody().asString());
+                branch = (jsonElement.getAsJsonObject().get("default_branch").getAsString());
+            } else {
+                RestAssured.baseURI = "https://api." + GitServer + "/repos/" + username + "/" + repoName;
+                Response response = RestAssured.get();
+                JsonElement jsonElement = JsonParser.parseString(response.getBody().asString());
+                branch = (jsonElement.getAsJsonObject().get("default_branch").getAsString());
+            }
+
+
+        }
 
         System.out.println("\n>>> Cloning repository\n");
 
@@ -96,9 +119,9 @@ public class Main {
         // Set the command to be run
         String[] command = null;
         if (System.getProperty("os.name").contains("Linux")) {
-            command = new String[]{"bash", "-c", "cd myapp"};
+            command = new String[]{"bash", "-c", "cd " + folderName};
         } else if (System.getProperty("os.name").contains("Windows")) {
-            command = new String[]{"cmd.exe", "/C", "cd myapp"};
+            command = new String[]{"cmd.exe", "/C", "cd " + folderName};
         }
         int exitCode = -1;
         // Create a ProcessBuilder for the command
@@ -126,9 +149,9 @@ public class Main {
         /////////////////////////////
 
         if (System.getProperty("os.name").contains("Linux")) {
-            command = new String[]{"bash", "-c", "mvn clean -f myapp/pom.xml"};
+            command = new String[]{"bash", "-c", "mvn clean -f " + folderName + "/pom.xml"};
         } else if (System.getProperty("os.name").contains("Windows")) {
-            command = new String[]{"cmd.exe", "/C", "mvn clean -f myapp/pom.xml"};
+            command = new String[]{"cmd.exe", "/C", "mvn clean -f " + folderName + "/pom.xml"};
         }
 
 
@@ -157,9 +180,9 @@ public class Main {
         System.out.println("mvn clean done");
         /////////////////////////////////
         if (System.getProperty("os.name").contains("Linux")) {
-            command = new String[]{"bash", "-c", "mvn -T 10 install -f myapp/pom.xml"};
+            command = new String[]{"bash", "-c", "mvn -T 10 install -f " + folderName + "/pom.xml"};
         } else if (System.getProperty("os.name").contains("Windows")) {
-            command = new String[]{"cmd.exe", "/C", "mvn -T 10 install -f myapp/pom.xml"};
+            command = new String[]{"cmd.exe", "/C", "mvn -T 10 install -f " + folderName + "/pom.xml"};
         }
         // Create a ProcessBuilder for the command
         processBuilder = new ProcessBuilder(command);
@@ -189,7 +212,7 @@ public class Main {
 
     public static void uploadToS3(String username, String token) throws IOException {
         try {
-            String filePath = System.getProperty("user.dir") + "/myapp/target/" + projectName + "-1.0-SNAPSHOT-jar-with-dependencies.jar";
+            String filePath = System.getProperty("user.dir") + "/" + folderName + "/target/" + projectName + "-1.0-SNAPSHOT-jar-with-dependencies.jar";
             System.out.println(filePath);
 
             String u = "https://apis-beta.gemecosystem.com/v1/upload/file";
